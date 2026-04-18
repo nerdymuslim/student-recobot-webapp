@@ -57,6 +57,7 @@
     <script>
         const AGENT_ID = 'asst_4T2V6VY37cWfiMl9YMThXtTb';
         const ENDPOINT = 'https://nerdymuslimfoundryres.services.ai.azure.com/api/projects/proj-default';
+        const API_KEY = 'B23g9XzKqAvHtbUlW35mzL63ko9jv6AghugA3TTCJLEAMdW77t5JJQQj99CDACPVOrexXJ3w3AAAAACOGN58N';
         let threadId = null;
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
         async function sendMessage() {
@@ -70,23 +71,38 @@
             const loadingId = addLoading();
             try {
                 if (!threadId) {
-                    const threadResp = await fetch(`${ENDPOINT}/agents/threads`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+                  const threadResp = await fetch(`${ENDPOINT}/agents/threads`, { 
+    method: 'POST', 
+    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' } 
+});
                     const threadData = await threadResp.json();
                     threadId = threadData.id;
                 }
-                await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: 'user', content: message }) });
-                const runResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agent_id: AGENT_ID }) });
+               await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages`, { 
+    method: 'POST', 
+    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' }, 
+    body: JSON.stringify({ role: 'user', content: message }) 
+});
+               const runResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs`, { 
+    method: 'POST', 
+    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' }, 
+    body: JSON.stringify({ agent_id: AGENT_ID }) 
+});
                 const runData = await runResp.json();
                 const runId = runData.id;
                 let status = 'running';
                 while (status === 'running' || status === 'queued') {
                     await new Promise(resolve => setTimeout(resolve, 1000));
-                    const statusResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs/${runId}`);
+                   const statusResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs/${runId}`, {
+    headers: { 'api-key': API_KEY }
+});
                     const statusData = await statusResp.json();
                     status = statusData.status;
                 }
                 if (status === 'failed') throw new Error('Agent run failed');
-                const messagesResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages?order=desc&limit=1`);
+                const messagesResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages?order=desc&limit=1`, {
+    headers: { 'api-key': API_KEY }
+});
                 const messagesData = await messagesResp.json();
                 const lastMessage = messagesData.data[0];
                 const botResponse = lastMessage.content[0].text.value;

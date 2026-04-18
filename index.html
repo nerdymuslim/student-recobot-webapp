@@ -1,40 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Recommendation Bot | Azure AI Foundry</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; }
-        header { background: rgba(0,0,0,0.2); color: white; padding: 20px; text-align: center; }
-        header h1 { font-size: 2em; margin-bottom: 10px; }
-        header p { opacity: 0.9; font-size: 1.1em; }
-        .container { flex: 1; max-width: 900px; margin: 30px auto; padding: 0 20px; width: 100%; }
-        .chat-box { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); height: 600px; display: flex; flex-direction: column; }
-        .messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; }
-        .message { margin-bottom: 15px; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .message.user { text-align: right; }
-        .message .bubble { display: inline-block; max-width: 70%; padding: 12px 18px; border-radius: 18px; font-size: 0.95em; line-height: 1.4; }
-        .message.user .bubble { background: #667eea; color: white; border-bottom-right-radius: 4px; }
-        .message.bot .bubble { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: pre-wrap; }
-        .message .timestamp { font-size: 0.75em; opacity: 0.6; margin-top: 5px; }
-        .loading { display: flex; gap: 5px; padding: 15px; }
-        .loading span { width: 8px; height: 8px; background: #999; border-radius: 50%; animation: bounce 1.4s infinite; }
-        .loading span:nth-child(2) { animation-delay: 0.2s; }
-        .loading span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-10px); } }
-        .input-area { display: flex; padding: 15px; background: white; border-top: 1px solid #e0e0e0; }
-        .input-area input { flex: 1; padding: 12px 18px; border: 1px solid #ddd; border-radius: 25px; font-size: 1em; outline: none; }
-        .input-area input:focus { border-color: #667eea; }
-        .input-area button { margin-left: 10px; padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .input-area button:hover { background: #5568d3; }
-        .input-area button:disabled { background: #ccc; cursor: not-allowed; }
-        footer { background: rgba(0,0,0,0.2); color: white; text-align: center; padding: 15px; font-size: 0.9em; }
-        .error { background: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .chat-box {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message .bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .message.user .bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+        }
+
+        .message .timestamp {
+            font-size: 0.75em;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: flex;
+            gap: 5px;
+            padding: 15px;
+        }
+
+        .loading span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+        }
+
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+
+        .input-area button {
+            margin-left: 10px;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .input-area button:hover {
+            background: #5568d3;
+        }
+
+        .input-area button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9em;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
+
 <body>
     <header>
         <h1>🎓 Student Recommendation Bot</h1>
@@ -44,7 +214,9 @@
         <div class="chat-box">
             <div class="messages" id="messages">
                 <div class="message bot">
-                    <div class="bubble">Hello! I'm the Student Recommendation Bot. I can help you find the best courses, certifications, and learning paths based on your goals, skill level, and available time. What would you like to learn?</div>
+                    <div class="bubble">Hello! I'm the Student Recommendation Bot. I can help you find the best courses,
+                        certifications, and learning paths based on your goals, skill level, and available time. What
+                        would you like to learn?</div>
                 </div>
             </div>
             <div class="input-area">
@@ -57,8 +229,24 @@
     <script>
         const AGENT_ID = 'asst_4T2V6VY37cWfiMl9YMThXtTb';
         const ENDPOINT = 'https://nerdymuslimfoundryres.services.ai.azure.com/api/projects/proj-default';
-        const API_KEY = 'B23g9XzKqAvHtbUlW35mzL63ko9jv6AghugA3TTCJLEAMdW77t5JJQQj99CDACPVOrexXJ3w3AAAAACOGN58N';
+        const API_KEY = 'B23g9XzKqAvHtbUIW35mzL63ko9jv6AghuqA3TTCJLEAMdW77t5JJQQJ99CDACPV0roXJ3w3AAAAACOGN58N';
+        const API_VERSION = '2025-01-01-preview';
         let threadId = null;
+
+        function apiUrl(path, extraParams = '') {
+            return `${ENDPOINT}${path}?api-version=${API_VERSION}${extraParams}`;
+        }
+
+        async function checkedFetch(url, options = {}) {
+            const resp = await fetch(url, options);
+            if (!resp.ok) {
+                let body = '';
+                try { body = await resp.text(); } catch (_) {}
+                throw new Error(`${resp.status} ${resp.statusText}: ${body}`);
+            }
+            return resp;
+        }
+
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
         async function sendMessage() {
             const input = document.getElementById('userInput');
@@ -71,38 +259,39 @@
             const loadingId = addLoading();
             try {
                 if (!threadId) {
-                  const threadResp = await fetch(`${ENDPOINT}/agents/threads`, { 
-    method: 'POST', 
-    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' } 
-});
+                    const threadResp = await checkedFetch(apiUrl('/agents/threads'), {
+                        method: 'POST',
+                        headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' }
+                    });
                     const threadData = await threadResp.json();
                     threadId = threadData.id;
+                    if (!threadId) throw new Error('No thread ID returned from Azure');
                 }
-               await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages`, { 
-    method: 'POST', 
-    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' }, 
-    body: JSON.stringify({ role: 'user', content: message }) 
-});
-               const runResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs`, { 
-    method: 'POST', 
-    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' }, 
-    body: JSON.stringify({ agent_id: AGENT_ID }) 
-});
+                await checkedFetch(apiUrl(`/agents/threads/${threadId}/messages`), {
+                    method: 'POST',
+                    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: 'user', content: message })
+                });
+                const runResp = await checkedFetch(apiUrl(`/agents/threads/${threadId}/runs`), {
+                    method: 'POST',
+                    headers: { 'api-key': API_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent_id: AGENT_ID })
+                });
                 const runData = await runResp.json();
                 const runId = runData.id;
                 let status = 'running';
                 while (status === 'running' || status === 'queued') {
                     await new Promise(resolve => setTimeout(resolve, 1000));
-                   const statusResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/runs/${runId}`, {
-    headers: { 'api-key': API_KEY }
-});
+                    const statusResp = await checkedFetch(apiUrl(`/agents/threads/${threadId}/runs/${runId}`), {
+                        headers: { 'api-key': API_KEY }
+                    });
                     const statusData = await statusResp.json();
                     status = statusData.status;
                 }
                 if (status === 'failed') throw new Error('Agent run failed');
-                const messagesResp = await fetch(`${ENDPOINT}/agents/threads/${threadId}/messages?order=desc&limit=1`, {
-    headers: { 'api-key': API_KEY }
-});
+                const messagesResp = await checkedFetch(apiUrl(`/agents/threads/${threadId}/messages`, '&order=desc&limit=1'), {
+                    headers: { 'api-key': API_KEY }
+                });
                 const messagesData = await messagesResp.json();
                 const lastMessage = messagesData.data[0];
                 const botResponse = lastMessage.content[0].text.value;
@@ -110,7 +299,7 @@
                 addMessage('bot', botResponse);
             } catch (error) {
                 removeLoading(loadingId);
-                addMessage('bot', '❌ Error: Unable to connect to the recommendation bot. This is a demo and requires proper Azure API authentication.');
+                addMessage('bot', '❌ Error: ' + (error.message || error));
             } finally {
                 input.disabled = false;
                 document.querySelector('button').disabled = false;
@@ -144,4 +333,5 @@
         }
     </script>
 </body>
+
 </html>
